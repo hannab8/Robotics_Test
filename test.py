@@ -60,3 +60,12 @@ class StereoImageSplitter:
 if __name__ == '__main__':
     splitter = StereoImageSplitter()
     rospy.spin()
+
+
+stitcher = cv2.createStitcher()  # Create a stitcher object
+            result, panorama = stitcher.stitch([self.left_image, self.right_image])
+            
+            if result == cv2.Stitcher_OK:
+                # Publish the panoramic image
+                panorama_msg = self.bridge.cv2_to_imgmsg(panorama, "bgr8")
+                self.panorama_pub.publish(panorama_msg)
