@@ -1,3 +1,36 @@
+import cv2
+import numpy as np
+img1 = cv2.imread('/home/aasha/karina_ws/src/Karina/igvc_perception/hsv_thresh/src/left_image.jpg')
+img2 = cv2.imread('/home/aasha/karina_ws/src/Karina/igvc_perception/hsv_thresh/src/right_image.jpg')
+
+imgs = [img1,img2]
+print("img1 size:",img1.shape)
+print("img2 size:",img2.shape)
+
+cv2.imshow("left",img1)
+cv2.imshow("right",img2)
+
+print("Creating stitcher...")
+stitcher=cv2.Stitcher.create() 
+(status,output)=stitcher.stitch(imgs) 
+
+print("Checking stitcher...")
+if status != cv2.STITCHER_OK: 
+  # checking if the stitching procedure is successful 
+  # .stitch() function returns a true value if stitching is  
+  # done successfully 
+    print("stitching ain't successful") 
+else:  
+    print('Your Panorama is ready!!!') 
+    
+  
+# final output 
+cv2.imshow('final result',output) 
+  
+cv2.waitKey(0)
+
+
+
 #!/usr/bin/env python3
 
 import rospy
