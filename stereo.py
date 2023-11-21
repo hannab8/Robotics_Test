@@ -165,3 +165,44 @@ else:
 cv2.imshow('final result',output) 
   
 cv2.waitKey(0)
+
+
+
+import rospy
+from sensor_msgs.msg import Image
+from cv_bridge import CvBridge
+import cv2
+
+class ImageStitcher:
+    def __init__(self):
+        self.bridge = CvBridge()
+        self.left_image = None
+        self.right_image = None
+
+        self.pub = rospy.Publisher("/lane_img", Image, queue_size=10)
+        rospy.Subscriber("/left/image_topic", Image, self.left_img_cb)
+        rospy.Subscriber("/right/image_topic", Image, self.right_img_cb)
+
+    def left_img_cb(self, msg):
+        self.left_image = self.bridge.imgmsg_to_cv2(msg)
+        self.try_stitching()
+
+    def right_img_cb(self, msg):
+        self.right_image = self.bridge.imgmsg_to_cv2(msg)
+        self.try_stitching()
+
+    def try_stitching(self):
+        if self.left_image is not None and self.right_image is not None:
+            stitched_image = self.stitch_images()
+            if stitched_image is not None:
+                cv2.imshow("Stitched Image", stitched_image)
+                cv2.waitKey(1)
+
+    def stitch_images(self):
+        # Your stitching logic here
+        pass
+
+if __name__ == "__main__":
+    rospy.init_node("image_stitcher_node")
+    stitcher = ImageStitcher()
+    rospy.spin()
