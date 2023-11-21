@@ -167,11 +167,11 @@ cv2.imshow('final result',output)
 cv2.waitKey(0)
 
 
-
 import rospy
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
 import cv2
+import numpy as np
 
 class ImageStitcher:
     def __init__(self):
@@ -180,8 +180,8 @@ class ImageStitcher:
         self.right_image = None
 
         self.pub = rospy.Publisher("/lane_img", Image, queue_size=10)
-        rospy.Subscriber("/left/image_topic", Image, self.left_img_cb)
-        rospy.Subscriber("/right/image_topic", Image, self.right_img_cb)
+        rospy.Subscriber("/zed2i/zed_node/left/image_rect_color", Image, self.left_img_cb)
+        rospy.Subscriber("/zed2i/zed_node/right/image_rect_color", Image, self.right_img_cb)
 
     def left_img_cb(self, msg):
         self.left_image = self.bridge.imgmsg_to_cv2(msg)
@@ -199,10 +199,29 @@ class ImageStitcher:
                 cv2.waitKey(1)
 
     def stitch_images(self):
-        # Your stitching logic here
-        pass
+        # Ensure both images are color
+        if self.left_image.shape[2] != 3:
+            self.left_image = cv2.cvtColor(self.left_image, cv2.COLOR_GRAY2BGR)
+        if self.right_image.shape[2] != 3:
+            self.right_image = cv2.cvtColor(self.right_image, cv2.COLOR_GRAY2BGR)
+
+        try:
+            imgs = [self.left_image, self.right_image]
+            stitcher = cv2.Stitcher.create(cv2.Stitcher_SCANS)
+            (status, stitched) = stitcher.stitch(imgs)
+
+            if status == cv2.Stitcher_OK:
+                print("Stitching successful.")
+                return stitched
+            else:
+                print("Stitching failed with status:", status)
+                return None
+        except Exception as e:
+            print(f"Exception in stitching: {e}")
+            return None
 
 if __name__ == "__main__":
     rospy.init_node("image_stitcher_node")
     stitcher = ImageStitcher()
     rospy.spin()
+
